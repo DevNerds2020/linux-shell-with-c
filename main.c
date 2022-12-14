@@ -10,19 +10,34 @@
     creating a linux shell
 */
 
+volatile sig_atomic_t signalFlag = 0;
+
 int checkIsCustomInput(char *input){
-    if(input == "a" || input == "b" || input == "c" || input == "d" || input == "f" || input == "g"){
+    //if we have a single string and the string is a custom command then return -1
+    if(strchr(input, ' ') == NULL){
+        if(strcmp(input, "a") == 0 || strcmp(input, "b") == 0 || strcmp(input, "c") == 0 || strcmp(input, "d") == 0 || strcmp(input, "f") == 0 || strcmp(input, "g") == 0){
+            return -1;
+        }
+    }
+    //get the first string in the input
+   char delimiter[] = " ";
+   char *firstWord, *context;
+   firstWord = strtok_r(input, delimiter, &context);
+//    printf("%s ", firstWord);
+    //check if the first string is a custom command
+    if(strcmp(firstWord, "a") == 0 || strcmp(firstWord, "b") == 0 || strcmp(firstWord, "c") == 0 || strcmp(firstWord, "d") == 0 || strcmp(firstWord, "f") == 0 || strcmp(firstWord, "g") == 0){
         return 1;
     }
     return 0;
 }
 
-//a command function which will search in a file lines and returns first string that is divided by space in each line
-void a(char *input){
-    //get the file name
-    char *fileName = strtok(input, " ");
-    //get the string to search
-    char *stringToSearch = strtok(NULL, " ");
+//a command function which will search in a file lines and returns first word that is divided by space in each line
+void aCommand(char *input){
+    char delimiter[] = " ";
+    char *firstWord, *fileName, *context;
+    firstWord = strtok_r (input, delimiter, &context);
+    fileName = strtok_r (NULL, delimiter, &context);
+    printf("=>>> in command a %s \n", fileName);
     //open the file
     FILE *file = fopen(fileName, "r");
     //read the file line by line
@@ -31,15 +46,125 @@ void a(char *input){
     while(getline(&line, &size, file) != -1){
         //get the first string in the line
         char *firstString = strtok(line, " ");
-        //compare the first string with the string to search
-        if(strcmp(firstString, stringToSearch) == 0){
-            //if they are equal then print the line
-            printf("%s", line);
+        //print the first string
+        printf("result of command a => %s ", firstString);
+    }
+    //close the file
+    fclose(file);
+}
+
+//g command function which will show first 10 lines of a file
+void gCommand(char *input){
+    //get the file name
+    char *fileName = strtok(input, " ");
+    //open the file
+    FILE *file = fopen(fileName, "r");
+    //read the file line by line
+    char *line = NULL;
+    size_t size = 0;
+    int count = 0;
+    while(getline(&line, &size, file) != -1){
+        //print the line
+        printf("%s", line);
+        count++;
+        if(count == 10){
             break;
         }
     }
     //close the file
     fclose(file);
+}
+
+//f command function which will show number of lines in a file
+void fCommand(char *input){
+    //get the file name
+    char *fileName = strtok(input, " ");
+    //open the file
+    FILE *file = fopen(fileName, "r");
+    //read the file line by line
+    char *line = NULL;
+    size_t size = 0;
+    int count = 0;
+    while(getline(&line, &size, file) != -1){
+        count++;
+    }
+    //print the number of lines
+    printf("%d lines", count);
+    //close the file
+    fclose(file);
+}
+
+//d command function which shows lines that aren't comment # in a file
+void dCommand(char *input){
+    //get the file name
+    char *fileName = strtok(input, " ");
+    //open the file
+    FILE *file = fopen(fileName, "r");
+    //read the file line by line
+    char *line = NULL;
+    size_t size = 0;
+    while(getline(&line, &size, file) != -1){
+        //check if the line is a comment
+        if(line[0] != '#'){
+            //if it is not a comment then print the line
+            printf("%s", line);
+        }
+    }
+    //close the file
+    fclose(file);
+}
+//b command function which will print the most frequent word in a file
+void bCommand(char *input){
+    //get the file name
+    char *fileName = strtok(input, " ");
+    //open the file
+    FILE *file = fopen(fileName, "r");
+    //read the file line by line
+    char *line = NULL;
+    size_t size = 0;
+    //create a hash table to store the words and their frequencies
+    char *words[100];
+    int frequencies[100];
+    int count = 0;
+    while(getline(&line, &size, file) != -1){
+        //get the first string in the line
+        char *firstString = strtok(line, " ");
+        //check if the word is already in the hash table
+        int flag = 0;
+        for(int i = 0; i < count; i++){
+            if(strcmp(words[i], firstString) == 0){
+                //if it is in the hash table then increase its frequency
+                frequencies[i]++;
+                flag = 1;
+                break;
+            }
+        }
+        if(flag == 0){
+            //if it is not in the hash table then add it to the hash table
+            words[count] = firstString;
+            frequencies[count] = 1;
+            count++;
+        }
+    }
+    //find the most frequent word
+    int max = 0;
+    int index = 0;
+    for(int i = 0; i < count; i++){
+        if(frequencies[i] > max){
+            max = frequencies[i];
+            index = i;
+        }
+    }
+    //print the most frequent word
+    printf("%s", words[index]);
+    //close the file
+    fclose(file);
+}
+
+//ctrl + c handler
+void ctrlCHandler(int signum){
+    printf("here is ctrl + c");
+    signalFlag = 1;
 }
 
 int main(){
@@ -49,35 +174,77 @@ int main(){
     char *input = NULL;
     size_t size = 0;
     int status = 1;
+
+    //listen to ctrl + c signal if it is pressed then run loop again
+    signal(SIGINT, ctrlCHandler);
+       
+
     while(status){
         //get current directory
+        if(signalFlag == 1){
+            printf("here in if ");
+            signalFlag = 0;
+            continue;
+        }
         char cwd[1024];
         getcwd(cwd, sizeof(cwd));
-        printf("myshell>%s: ", cwd);
+        printf("myshell> %s: ", cwd);
         getline(&input, &size, stdin);
-        //print input
-        printf("input =>>>> %s", input);
-        //if input is not one of the custom commands then we need to fork and exec with system and let it be handled by linux terminal
+        // printf("input =>>>> %s", input);
+        //copy input for not changing value
+        char inputCopy[100];
+        strcpy(inputCopy, input);
         //check if input is one of the custom commands
-        int flag = checkIsCustomInput(input);
-       
-        //if flag is 0 
-        if(flag == 0){
+        int flag = checkIsCustomInput(inputCopy);
+        // printf("flag =>>>> %d ", flag);
+        if (flag == -1){
+            //print please enter file name
+            printf("please enter file name \n");
+            continue;
+        }else if(flag == 0){
             //fork and exec
             pid_t pid = fork();
             if(pid == 0){
-                printf("%s =>>>> ", input);
+                // printf("linux command =>>>> %s ", input);
                 //child process
-                //exec
-                execl("/bin/sh", "sh", "-c", input, NULL);
+                //exec all of command with system
+                system(input);
             }else{
                 //parent process
-                //wait
-                wait(NULL);
+                //wait for child process to finish waitpid
+                waitpid(pid, NULL, 0);
                 continue;
             }
         }else{
-
+            // printf("custom command =>>>> %s", input);
+            //run custom command
+            //get the first string in the input
+            // printf("%s =>>>", input);
+            char inputCopy[100];
+            strcpy(inputCopy, input);
+            char *firstString = strtok(inputCopy, " ");
+            //check which command is it 
+            if(strcmp(firstString, "a") == 0){
+                //run a command
+                // printf("%s =>>>", input);
+                aCommand(input);
+            }else if(strcmp(firstString, "b") == 0){
+                //run b command
+                bCommand(input);
+            }else if(strcmp(firstString, "c") == 0){
+                //run c command
+                // Commandc(input);
+                printf("not implemented yet");
+            }else if(strcmp(firstString, "d") == 0){
+                //run d command
+                dCommand(input);
+            }else if(strcmp(firstString, "f") == 0){
+                //run f command
+                fCommand(input);
+            }else if(strcmp(firstString, "g") == 0){
+                //run g command
+                gCommand(input);
+            }
         }
     }
 }
