@@ -10,7 +10,7 @@
     creating a linux shell
 */
 
-volatile sig_atomic_t signalFlag = 0;
+volatile sig_atomic_t signalFlag;
 
 int checkIsCustomInput(char *input){
     //if we have a single string and the string is a custom command then return -1
@@ -26,6 +26,7 @@ int checkIsCustomInput(char *input){
 //    printf("%s ", firstWord);
     //check if the first string is a custom command
     if(strcmp(firstWord, "a") == 0 || strcmp(firstWord, "b") == 0 || strcmp(firstWord, "c") == 0 || strcmp(firstWord, "d") == 0 || strcmp(firstWord, "f") == 0 || strcmp(firstWord, "g") == 0){
+        //TODO check if we have | in the input for piping and dividing the input for example a file.txt | b | c
         return 1;
     }
     return 0;
@@ -132,11 +133,25 @@ void dCommand(char *input){
     char *line = NULL;
     size_t size = 0;
     while(getline(&line, &size, file) != -1){
-        //check if the line is a comment
-        if(line[0] != '#'){
+        //check if the line is a comment or haves a comment any where in it
+        if(strchr(line, '#') == NULL){
             //if it is not a comment then print the line
             printf("%s", line);
         }
+        //if it has a comment in it then print the line before the comment
+        else{
+            //get the index of the comment
+            int index = strchr(line, '#') - line;
+            //print the line before the comment
+            for(int i = 0; i < index; i++){
+                printf("%c", line[i]);
+            }
+            printf(" \n");
+        }
+        // if(line[0] != '#'){
+        //     //if it is not a comment then print the line
+        //     printf("%s", line);
+        // }
     }
     //close the file
     fclose(file);
@@ -192,14 +207,62 @@ void bCommand(char *input){
     fclose(file);
 }
 
+//c command function which will delete all the spaces in a file and print all the words in a file without spaces
+void cCommand(char *input){
+    //get the file name from getFileName function
+    char *fileName = getFileName(input);
+    //open the file
+    FILE *file = fopen(fileName, "r");
+    if(file == NULL){
+        printf("File not found \n");
+        return;
+    }
+    char *line = NULL;
+    size_t size = 0;
+    while(getline(&line, &size, file) != -1){
+        //get the first string in the line
+        char *firstString = strtok(line, " ");
+        //if the first string is not null
+        if(firstString != NULL){
+            //print the first string
+            printf("%s", firstString);
+        }
+        //get the rest of the strings in the line
+        while(firstString != NULL){
+            firstString = strtok(NULL, " ");
+            if(firstString != NULL){
+                //print the rest of the strings
+                printf("%s", firstString);
+            }
+        }
+    }
+    //close the file
+    fclose(file);
+}
+
 //ctrl + c handler
 void ctrlCHandler(int signum){
-    printf("here is ctrl + c");
+    // printf("here is ctrl + c");
     signalFlag = 1;
+    system(" ");   
     return;
 }
 
-int main(){
+//arrow up handler
+void arrowUpHandler(int signum){
+    printf("here is arrow up");
+    signalFlag = 2;
+    return;
+}
+
+//arrow down handler
+void arrowDownHandler(int signum){
+    printf("here is arrow down");
+    signalFlag = 3;
+    return;
+}
+
+int main(int argc, char **argv){
     //array for storing the commands history
     char *history[1000];
     int historyCount = 0;
@@ -208,23 +271,28 @@ int main(){
     //first getting user inputs and storing them in a string in a loop
     char *input = NULL;
     size_t size = 0;
-    int status = 1;
+    // int status = 1;
 
     //listen to ctrl + c signal if it is pressed then run loop again
     signal(SIGINT, ctrlCHandler);
-       
 
-    while(status){
+    //listen to arrow up signal if it is pressed then print the last command
+    signal(SIGTSTP, arrowUpHandler);
+    //listen to arrow down signal if it is pressed then print the next command
+    signal(SIGQUIT, arrowDownHandler);
+
+    while(!signalFlag){
         //get current directory
-        if(signalFlag == 1){
-            printf("here in if ");
-            signalFlag = 0;
-            continue;
-        }
+        //history command default is ""
+        // char *historyCommand = "";
         char cwd[1024];
         getcwd(cwd, sizeof(cwd));
         printf("myshell> %s: ", cwd);
         getline(&input, &size, stdin);
+        //if input is exit then exit the program
+        if(strcmp(input, "e") == 0){
+            return 0;
+        }
         // printf("input =>>>> %s", input);
         //copy input for not changing value
         char inputCopy[100];
@@ -278,8 +346,10 @@ int main(){
                     historyCount++;
                 }else if(strcmp(firstString, "c") == 0){
                     //run c command
-                    // Commandc(input);
-                    printf("not implemented yet");
+                    cCommand(input);
+                    history[historyCount] = input;
+                    historyCount++;
+                    // printf("not implemented yet");
                 }else if(strcmp(firstString, "d") == 0){
                     //run d command
                     dCommand(input);
@@ -307,5 +377,8 @@ int main(){
             }
         }
     }
+    // printf("here out of while");
+    //refresh the code with system()
+    system("clear");
 }
 
