@@ -17,12 +17,12 @@ void inthand(int signum) {
 int main(int argc, char **argv) {
 
     signal(SIGINT, inthand);
-    int input;
+    char str[20];
 
     while(!stop) {
-        printf("Enter a number: ");
-        scanf("%d", &input);
-        printf("You entered: %d \n", input);
+        printf("Enter a string: ");
+        fgets(str, 20, stdin);
+        printf("%s", str);
     }
 
     printf("exiting safely\n");

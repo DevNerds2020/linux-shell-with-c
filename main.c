@@ -11,6 +11,7 @@
 */
 
 volatile sig_atomic_t signalFlag;
+volatile sig_atomic_t status = 1;
 
 int checkIsCustomInput(char *input){
     //if we have a single string and the string is a custom command then return -1
@@ -240,61 +241,141 @@ void cCommand(char *input){
     fclose(file);
 }
 
+//e command function which will end the program
+void eCommand(){
+    status = 0;
+    signalFlag = 1;
+    exit(0);
+}
+
 //ctrl + c handler
 void ctrlCHandler(int signum){
-    // printf("here is ctrl + c");
     signalFlag = 1;
-    system(" ");   
-    return;
 }
 
-//arrow up handler
-void arrowUpHandler(int signum){
-    printf("here is arrow up");
-    signalFlag = 2;
-    return;
+//write the input to history.txt file
+void writeHistory(char *input){
+    //open the file
+    FILE *file = fopen("history.txt", "a");
+    if(file == NULL){
+        printf("File not found \n");
+        return;
+    }
+    //write the input to the file
+    fprintf(file, "%s", input);
+    //close the file
+    fclose(file);
 }
 
-//arrow down handler
-void arrowDownHandler(int signum){
-    printf("here is arrow down");
-    signalFlag = 3;
-    return;
+//read the history from a file and print it
+void printHistory(){
+    //open the file
+    FILE *file = fopen("history.txt", "r");
+    if(file == NULL){
+        printf("File not found \n");
+        return;
+    }
+    char *line = NULL;
+    size_t size = 0;
+    //read the file line by line and print it
+    while(getline(&line, &size, file) != -1){
+        printf("%s", line);
+    }
+    printf("\n");
+    //close the file
+    fclose(file);
 }
 
-int main(int argc, char **argv){
-    //array for storing the commands history
-    char *history[1000];
-    int historyCount = 0;
+//get the target line from history.txt file
+char *getTargetLine(int targetLine){
+    //open the file
+    FILE *file = fopen("history.txt", "r");
+    if(file == NULL){
+        printf("File not found \n");
+        return NULL;
+    }
+    char *line = NULL;
+    size_t size = 0;
+    //get the target line number
+    int count = 0;
+    //read the file line by line and get the target line
+    while(getline(&line, &size, file) != -1){
+        count++;
+        if(count == targetLine){
+            //close the file
+            fclose(file);
+            return line;
+        }
+    }
+    //close the file
+    fclose(file);
+    return NULL;
+}
+
+//get history.txt line count
+int getLineCount(){
+    //open the file
+    FILE *file = fopen("history.txt", "r");
+    if(file == NULL){
+        printf("File not found \n");
+        return 0;
+    }
+    char *line = NULL;
+    size_t size = 0;
+    int count = 0;
+    //read the file line by line and get the line count
+    while(getline(&line, &size, file) != -1){
+        count++;
+    }
+    //close the file
+    fclose(file);
+    return count;
+}
+
+int shellCore(){
+    signalFlag = 0;
     //list of custom commands including =>  a,b,c,d,f,g in array
     char *commands[7] = {"a", "b", "c", "d", "f", "g"};
     //first getting user inputs and storing them in a string in a loop
     char *input = NULL;
+    // char input[1000];
     size_t size = 0;
     // int status = 1;
 
     //listen to ctrl + c signal if it is pressed then run loop again
     signal(SIGINT, ctrlCHandler);
-
-    //listen to arrow up signal if it is pressed then print the last command
-    signal(SIGTSTP, arrowUpHandler);
-    //listen to arrow down signal if it is pressed then print the next command
-    signal(SIGQUIT, arrowDownHandler);
+    int historyLine = 0;
 
     while(!signalFlag){
         //get current directory
-        //history command default is ""
-        // char *historyCommand = "";
         char cwd[1024];
         getcwd(cwd, sizeof(cwd));
         printf("myshell> %s: ", cwd);
         getline(&input, &size, stdin);
-        //if input is exit then exit the program
-        if(strcmp(input, "e") == 0){
-            return 0;
+
+        //if input is arrow up then get the last command from history.txt file
+        if(strcmp(input, "\033[A") == 0){
+            
+            // if(historyLine == 0){
+            //     historyLine = getLineCount();
+            // }
+            // char *targetLine = getTargetLine(historyLine);
+            // if(targetLine != NULL){
+            //     strcpy(input, targetLine);
+            //     historyLine--;
+            // }
         }
-        // printf("input =>>>> %s", input);
-        //copy input for not changing value
+        // fgets(input, 1000, stdin);
+        //if input is e then end the program
+        if(strcmp(input, "e\n") == 0){
+            eCommand();
+            break;
+        }
+        //if input is h then print the history of commands
+        if(strcmp(input, "h\n") == 0){
+            printHistory();
+            continue;
+        }
         char inputCopy[100];
         strcpy(inputCopy, input);
         //check if input is one of the custom commands
@@ -312,15 +393,15 @@ int main(int argc, char **argv){
                 //child process
                 //exec all of command with system
                 system(input);
-                //add the command to history
-                history[historyCount] = input;
-                historyCount++;
                 //we can use execvp to run linux commands
                 //execvp(input, NULL);
+                writeHistory(input);
+                exit(0);
             }else{
                 //parent process
                 //wait for child process to finish waitpid
                 waitpid(pid, NULL, 0);
+                historyLine = 0;
                 continue;
             }
         }else{
@@ -335,50 +416,38 @@ int main(int argc, char **argv){
                     //run a command
                     // printf("%s =>>>", input);
                     aCommand(input);
-                    //add the command to history
-                    history[historyCount] = input;
-                    historyCount++;
                 }else if(strcmp(firstString, "b") == 0){
                     //run b command
                     bCommand(input);
-                    //add the command to history
-                    history[historyCount] = input;
-                    historyCount++;
                 }else if(strcmp(firstString, "c") == 0){
                     //run c command
                     cCommand(input);
-                    history[historyCount] = input;
-                    historyCount++;
-                    // printf("not implemented yet");
                 }else if(strcmp(firstString, "d") == 0){
                     //run d command
                     dCommand(input);
-                    //add the command to history
-                    history[historyCount] = input;
-                    historyCount++;
                 }else if(strcmp(firstString, "f") == 0){
                     //run f command
                     fCommand(input);
-                    //add the command to history
-                    history[historyCount] = input;
-                    historyCount++;
                 }else if(strcmp(firstString, "g") == 0){
                     //run g command
                     gCommand(input);
-                    //add the command to history
-                    history[historyCount] = input;
-                    historyCount++;
                 }
+                writeHistory(input);
+                exit(0);
             }else{
                 //parent process
                 //wait for child process to finish waitpid
                 waitpid(pid, NULL, 0);
+                historyLine = 0;
                 continue;
             }
         }
     }
-    // printf("here out of while");
-    //refresh the code with system()
-    system("clear");
+}
+
+int main(int argc, char **argv){
+    while(status){
+        status = shellCore();
+    }
 }
 
