@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
 /*
     creating a linux shell
 */
@@ -53,7 +54,7 @@ void aCommand(char *input){
     //open the file
     FILE *file = fopen(fileName, "r");
     if(file == NULL){
-        printf("File not found \n");
+        fprintf(stderr, "File not found \n");
         return;
     }
     //read the file line by line
@@ -81,7 +82,7 @@ void gCommand(char *input){
     //open the file
     FILE *file = fopen(fileName, "r");
     if(file == NULL){
-        printf("File not found \n");
+        fprintf(stderr, "File not found \n");
         return;
     }
     char *line = NULL;
@@ -106,7 +107,7 @@ void fCommand(char *input){
     //open the file
     FILE *file = fopen(fileName, "r");
     if(file == NULL){
-        printf("File not found \n");
+        fprintf(stderr, "File not found \n");
         return;
     }
     char *line = NULL;
@@ -128,7 +129,7 @@ void dCommand(char *input){
     //open the file
     FILE *file = fopen(fileName, "r");
     if(file == NULL){
-        printf("File not found \n");
+        fprintf(stderr, "File not found \n");
         return;
     }
     char *line = NULL;
@@ -164,7 +165,7 @@ void bCommand(char *input){
     //open the file
     FILE *file = fopen(fileName, "r");
     if(file == NULL){
-        printf("File not found \n");
+        fprintf(stderr, "File not found \n");
         return;
     }
     char *line = NULL;
@@ -215,7 +216,7 @@ void cCommand(char *input){
     //open the file
     FILE *file = fopen(fileName, "r");
     if(file == NULL){
-        printf("File not found \n");
+        fprintf(stderr, "File not found \n");
         return;
     }
     char *line = NULL;
@@ -258,7 +259,7 @@ void writeHistory(char *input){
     //open the file
     FILE *file = fopen("history.txt", "a");
     if(file == NULL){
-        printf("File not found \n");
+        fprintf(stderr, "File not found \n");
         return;
     }
     //write the input to the file
@@ -272,7 +273,7 @@ void printHistory(){
     //open the file
     FILE *file = fopen("history.txt", "r");
     if(file == NULL){
-        printf("File not found \n");
+        fprintf(stderr, "File not found \n");
         return;
     }
     char *line = NULL;
@@ -291,7 +292,7 @@ char *getTargetLine(int targetLine){
     //open the file
     FILE *file = fopen("history.txt", "r");
     if(file == NULL){
-        printf("File not found \n");
+        fprintf(stderr, "File not found \n");
         return NULL;
     }
     char *line = NULL;
@@ -317,7 +318,7 @@ int getLineCount(){
     //open the file
     FILE *file = fopen("history.txt", "r");
     if(file == NULL){
-        printf("File not found \n");
+        fprintf(stderr, "File not found \n");
         return 0;
     }
     char *line = NULL;
@@ -330,6 +331,43 @@ int getLineCount(){
     //close the file
     fclose(file);
     return count;
+}
+
+//a function which will check if the custom command is a pipe command or not
+int isPipeCommand(char *input){
+    //check if the input contains a pipe
+    if(strchr(input, '|') != NULL){
+        return 1;
+    }
+    return 0;
+}
+
+void runCommand(char *input){
+    char inputCopy[100];
+    strcpy(inputCopy, input);
+    char *firstString = strtok(inputCopy, " ");
+    //check which command is it 
+    if(strcmp(firstString, "a") == 0){
+        //run a command
+        // printf("%s =>>>", input);
+        aCommand(input);
+    }else if(strcmp(firstString, "b") == 0){
+        //run b command
+        bCommand(input);
+    }else if(strcmp(firstString, "c") == 0){
+        //run c command
+        cCommand(input);
+    }else if(strcmp(firstString, "d") == 0){
+        //run d command
+        dCommand(input);
+    }else if(strcmp(firstString, "f") == 0){
+        //run f command
+        fCommand(input);
+    }else if(strcmp(firstString, "g") == 0){
+        //run g command
+        gCommand(input);
+    }
+    return;
 }
 
 int shellCore(){
@@ -345,27 +383,49 @@ int shellCore(){
     //listen to ctrl + c signal if it is pressed then run loop again
     signal(SIGINT, ctrlCHandler);
     int historyLine = 0;
+    
 
     while(!signalFlag){
         //get current directory
         char cwd[1024];
         getcwd(cwd, sizeof(cwd));
         printf("myshell> %s: ", cwd);
+        
+        //get the input if it is not null then it is from the history and it has a default value else it is from the user
         getline(&input, &size, stdin);
-
-        //if input is arrow up then get the last command from history.txt file
-        if(strcmp(input, "\033[A") == 0){
-            
-            // if(historyLine == 0){
-            //     historyLine = getLineCount();
-            // }
-            // char *targetLine = getTargetLine(historyLine);
-            // if(targetLine != NULL){
-            //     strcpy(input, targetLine);
-            //     historyLine--;
-            // }
+      
+        //get arrow up and down inputs for changing the history
+        if(strcmp(input, "\033[A\n") == 0){
+            //arrow up
+            //get the line count
+            int lineCount = getLineCount();
+            //get the target line
+            char *targetLine = getTargetLine(lineCount - historyLine);
+            if(targetLine != NULL){
+                //print the target line
+                // printf("%s", targetLine);
+                //copy the target line to input
+                strcpy(input, targetLine);
+                //increase the history line
+                historyLine++;
+            }
+            continue;
+        }else if(strcmp(input, "\033[B\n") == 0){
+            //arrow down
+            //get the line count
+            int lineCount = getLineCount();
+            //get the target line
+            char *targetLine = getTargetLine(lineCount - historyLine);
+            if(targetLine != NULL){
+                //print the target line
+                // printf("%s", targetLine);
+                //copy the target line to input
+                strcpy(input, targetLine);
+                //decrease the history line
+                historyLine--;
+            }
+            continue;
         }
-        // fgets(input, 1000, stdin);
         //if input is e then end the program
         if(strcmp(input, "e\n") == 0){
             eCommand();
@@ -382,8 +442,8 @@ int shellCore(){
         int flag = checkIsCustomInput(inputCopy);
         // printf("flag =>>>> %d ", flag);
         if (flag == -1){
-            //print please enter file name
-            printf("please enter file name \n");
+            //print please enter file name stderror
+            fprintf(stderr, "Please enter file name \n");
             continue;
         }else if(flag == 0){
             //fork and exec
@@ -405,33 +465,27 @@ int shellCore(){
                 continue;
             }
         }else{
+            int isPipeCommandFlag = isPipeCommand(input);
+            if(isPipeCommandFlag){
+                //divide the parts of the command separated by pipe | it can be more than 2 parts
+                char *parts[10];
+                int count = 0;
+                char *token = strtok(input, "|");
+                while(token != NULL){
+                    parts[count] = token;
+                    count++;
+                    token = strtok(NULL, "|");
+                }
+                // a loop in parts 
+                for(int i = 0; i < count; i++){
+                    // printf("part =>>> %s
+
+                } 
+            }
            //create a process for running the command
             pid_t pid = fork();
             if(pid == 0){
-                char inputCopy[100];
-                strcpy(inputCopy, input);
-                char *firstString = strtok(inputCopy, " ");
-                //check which command is it 
-                if(strcmp(firstString, "a") == 0){
-                    //run a command
-                    // printf("%s =>>>", input);
-                    aCommand(input);
-                }else if(strcmp(firstString, "b") == 0){
-                    //run b command
-                    bCommand(input);
-                }else if(strcmp(firstString, "c") == 0){
-                    //run c command
-                    cCommand(input);
-                }else if(strcmp(firstString, "d") == 0){
-                    //run d command
-                    dCommand(input);
-                }else if(strcmp(firstString, "f") == 0){
-                    //run f command
-                    fCommand(input);
-                }else if(strcmp(firstString, "g") == 0){
-                    //run g command
-                    gCommand(input);
-                }
+                runCommand(input);
                 writeHistory(input);
                 exit(0);
             }else{
