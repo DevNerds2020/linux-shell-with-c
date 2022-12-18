@@ -68,7 +68,7 @@ void aCommand(char *input){
             //if the first string is equal to the word that we are searching for
             //print the first string
             printf("result of command a => %s \n", firstString);
-            break;
+            // break;
         }
     }
     //close the file
@@ -342,6 +342,56 @@ int isPipeCommand(char *input){
     return 0;
 }
 
+void aCommandLinuxLike(char *input){
+    char *fileName = getFileName(input);
+    //a script for showing first words of each line in file name
+    char *command = "cat ";
+    strcat(command, fileName);
+    strcat(command, " | awk '{print $1}'");
+    system(command);
+} 
+
+void bCommandLinuxLike(char *input){
+    char *fileName = getFileName(input);
+    //run bscript.sh script
+    char *command = "./bscript.sh ";
+    strcat(command, fileName);
+    system(command);
+}
+
+void cCommandLinuxLike(char *input){
+    char *fileName = getFileName(input);
+    //run cscript.sh script
+    char *command = "./cscript.sh ";
+    strcat(command, fileName);
+    system(command);
+}
+
+void dCommandLinuxLike(char *input){
+    char *fileName = getFileName(input);
+    //run dscript.sh script
+    char *command = "./dscript.sh ";
+    strcat(command, fileName);
+    system(command);
+}
+
+void fCommandLinuxLike(char *input){
+    char *fileName = getFileName(input);
+    //run fscript.sh script
+    char *command = "./fscript.sh ";
+    strcat(command, fileName);
+    system(command);
+}
+
+void gCommandLinuxLike(char *input){
+    char *fileName = getFileName(input);
+    //run gscript.sh script
+    char *command = "./gscript.sh ";
+    strcat(command, fileName);
+    system(command);
+}
+
+
 void runCommand(char *input){
     char inputCopy[100];
     strcpy(inputCopy, input);
@@ -366,6 +416,34 @@ void runCommand(char *input){
     }else if(strcmp(firstString, "g") == 0){
         //run g command
         gCommand(input);
+    }
+    return;
+}
+
+void runCommandWithLinuxHelp(char *input){
+    char inputCopy[100];
+    strcpy(inputCopy, input);
+    char *firstString = strtok(inputCopy, " ");
+    //check which command is it 
+    if(strcmp(firstString, "a") == 0){
+        //run a command
+        // printf("%s =>>>", input);
+        aCommandLinuxLike(input);
+    }else if(strcmp(firstString, "b") == 0){
+        //run b command
+        bCommandLinuxLike(input);
+    }else if(strcmp(firstString, "c") == 0){
+        //run c command
+        cCommandLinuxLike(input);
+    }else if(strcmp(firstString, "d") == 0){
+        //run d command
+        dCommandLinuxLike(input);
+    }else if(strcmp(firstString, "f") == 0){
+        //run f command
+        fCommandLinuxLike(input);
+    }else if(strcmp(firstString, "g") == 0){
+        //run g command
+        gCommandLinuxLike(input);
     }
     return;
 }
@@ -465,27 +543,11 @@ int shellCore(){
                 continue;
             }
         }else{
-            int isPipeCommandFlag = isPipeCommand(input);
-            if(isPipeCommandFlag){
-                //divide the parts of the command separated by pipe | it can be more than 2 parts
-                char *parts[10];
-                int count = 0;
-                char *token = strtok(input, "|");
-                while(token != NULL){
-                    parts[count] = token;
-                    count++;
-                    token = strtok(NULL, "|");
-                }
-                // a loop in parts 
-                for(int i = 0; i < count; i++){
-                    // printf("part =>>> %s
-
-                } 
-            }
            //create a process for running the command
             pid_t pid = fork();
             if(pid == 0){
-                runCommand(input);
+                // runCommand(input);
+                runCommandWithLinuxHelp(input);
                 writeHistory(input);
                 exit(0);
             }else{
