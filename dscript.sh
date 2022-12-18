@@ -1,3 +1,2 @@
-#show lines that arent comment in file
-file=$1
-sed -i '/^#/d' $file
+#print all the lines that are not comment
+grep -v "^#" $1

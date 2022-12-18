@@ -1,2 +1,2 @@
-#delete all white spaces from each line 
-sed -i 's/ //g' $1
+#delete all white spaces and \n from each line and show the result
+sed -i 's/ //g' $1 | cat $1

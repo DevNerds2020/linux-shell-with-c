@@ -354,7 +354,7 @@ void aCommandLinuxLike(char *input){
 void bCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
     //run bscript.sh script
-    char *command = "./bscript.sh ";
+    char *command = "bash bscript.sh ";
     strcat(command, fileName);
     system(command);
 }
@@ -362,7 +362,7 @@ void bCommandLinuxLike(char *input){
 void cCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
     //run cscript.sh script
-    char *command = "./cscript.sh ";
+    char *command = "bash cscript.sh ";
     strcat(command, fileName);
     system(command);
 }
@@ -370,7 +370,7 @@ void cCommandLinuxLike(char *input){
 void dCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
     //run dscript.sh script
-    char *command = "./dscript.sh ";
+    char *command = "bash dscript.sh ";
     strcat(command, fileName);
     system(command);
 }
@@ -378,7 +378,7 @@ void dCommandLinuxLike(char *input){
 void fCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
     //run fscript.sh script
-    char *command = "./fscript.sh ";
+    char *command = "bash fscript.sh ";
     strcat(command, fileName);
     system(command);
 }
@@ -386,7 +386,7 @@ void fCommandLinuxLike(char *input){
 void gCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
     //run gscript.sh script
-    char *command = "./gscript.sh ";
+    char *command = "bash gscript.sh ";
     strcat(command, fileName);
     system(command);
 }
