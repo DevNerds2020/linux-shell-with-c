@@ -342,55 +342,77 @@ int isPipeCommand(char *input){
     return 0;
 }
 
+
 void aCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
-    //a script for showing first words of each line in file name
-    char *command = "cat ";
-    strcat(command, fileName);
-    strcat(command, " | awk '{print $1}'");
-    printf("command is %s", command);
-    system(command);
+    char *command = "bash ascript.sh ";
+    //copy the into a new string
+    char *newString = malloc(strlen(command) + strlen(fileName) + 1);
+    //add the command and the file name to the new string
+    strcpy(newString, command);
+    strcat(newString, fileName);
+    system(newString);
+    return;
 } 
 
 void bCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
     //run bscript.sh script
     char *command = "bash bscript.sh ";
-    strcat(command, fileName);
-    printf("command is %s", command);
-    system(command);
+    char *newString = malloc(strlen(command) + strlen(fileName) + 1);
+    //add the command and the file name to the new string
+    strcpy(newString, command);
+    strcat(newString, fileName);
+    system(newString);
+    return;
 }
 
 void cCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
-    //run cscript.sh script
+    //run bscript.sh script
     char *command = "bash cscript.sh ";
-    strcat(command, fileName);
-    system(command);
+    char *newString = malloc(strlen(command) + strlen(fileName) + 1);
+    //add the command and the file name to the new string
+    strcpy(newString, command);
+    strcat(newString, fileName);
+    system(newString);
+    return;
 }
 
 void dCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
-    //run dscript.sh script
+    //run bscript.sh script
     char *command = "bash dscript.sh ";
-    strcat(command, fileName);
-    system(command);
+    char *newString = malloc(strlen(command) + strlen(fileName) + 1);
+    //add the command and the file name to the new string
+    strcpy(newString, command);
+    strcat(newString, fileName);
+    system(newString);
+    return;
 }
 
 void fCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
-    //run fscript.sh script
+    //run bscript.sh script
     char *command = "bash fscript.sh ";
-    strcat(command, fileName);
-    system(command);
+    char *newString = malloc(strlen(command) + strlen(fileName) + 1);
+    //add the command and the file name to the new string
+    strcpy(newString, command);
+    strcat(newString, fileName);
+    system(newString);
+    return;
 }
 
 void gCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
-    //run gscript.sh script
+    //run bscript.sh script
     char *command = "bash gscript.sh ";
-    strcat(command, fileName);
-    system(command);
+    char *newString = malloc(strlen(command) + strlen(fileName) + 1);
+    //add the command and the file name to the new string
+    strcpy(newString, command);
+    strcat(newString, fileName);
+    system(newString);
+    return;
 }
 
 
@@ -430,11 +452,9 @@ void runCommandWithLinuxHelp(char *input){
     if(strcmp(firstString, "a") == 0){
         //run a command
         // printf("%s =>>>", input);
-        printf("in a command");
         aCommandLinuxLike(input);
     }else if(strcmp(firstString, "b") == 0){
         //run b command
-        printf("in b command");
         bCommandLinuxLike(input);
     }else if(strcmp(firstString, "c") == 0){
         //run c command
