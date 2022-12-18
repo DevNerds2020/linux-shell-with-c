@@ -348,6 +348,7 @@ void aCommandLinuxLike(char *input){
     char *command = "cat ";
     strcat(command, fileName);
     strcat(command, " | awk '{print $1}'");
+    printf("command is %s", command);
     system(command);
 } 
 
@@ -356,6 +357,7 @@ void bCommandLinuxLike(char *input){
     //run bscript.sh script
     char *command = "bash bscript.sh ";
     strcat(command, fileName);
+    printf("command is %s", command);
     system(command);
 }
 
@@ -428,9 +430,11 @@ void runCommandWithLinuxHelp(char *input){
     if(strcmp(firstString, "a") == 0){
         //run a command
         // printf("%s =>>>", input);
+        printf("in a command")
         aCommandLinuxLike(input);
     }else if(strcmp(firstString, "b") == 0){
         //run b command
+        printf("in b command")
         bCommandLinuxLike(input);
     }else if(strcmp(firstString, "c") == 0){
         //run c command
