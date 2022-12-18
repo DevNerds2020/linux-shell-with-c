@@ -430,11 +430,11 @@ void runCommandWithLinuxHelp(char *input){
     if(strcmp(firstString, "a") == 0){
         //run a command
         // printf("%s =>>>", input);
-        printf("in a command")
+        printf("in a command");
         aCommandLinuxLike(input);
     }else if(strcmp(firstString, "b") == 0){
         //run b command
-        printf("in b command")
+        printf("in b command");
         bCommandLinuxLike(input);
     }else if(strcmp(firstString, "c") == 0){
         //run c command
