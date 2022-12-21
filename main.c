@@ -345,7 +345,7 @@ int isPipeCommand(char *input){
 
 void aCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
-    char *command = "bash ascript.sh ";
+    char *command = "bash a.sh ";
     //copy the into a new string
     char *newString = malloc(strlen(command) + strlen(fileName) + 1);
     //add the command and the file name to the new string
@@ -358,7 +358,7 @@ void aCommandLinuxLike(char *input){
 void bCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
     //run bscript.sh script
-    char *command = "bash bscript.sh ";
+    char *command = "bash b.sh ";
     char *newString = malloc(strlen(command) + strlen(fileName) + 1);
     //add the command and the file name to the new string
     strcpy(newString, command);
@@ -370,7 +370,7 @@ void bCommandLinuxLike(char *input){
 void cCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
     //run bscript.sh script
-    char *command = "bash cscript.sh ";
+    char *command = "bash c.sh ";
     char *newString = malloc(strlen(command) + strlen(fileName) + 1);
     //add the command and the file name to the new string
     strcpy(newString, command);
@@ -382,7 +382,7 @@ void cCommandLinuxLike(char *input){
 void dCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
     //run bscript.sh script
-    char *command = "bash dscript.sh ";
+    char *command = "bash d.sh ";
     char *newString = malloc(strlen(command) + strlen(fileName) + 1);
     //add the command and the file name to the new string
     strcpy(newString, command);
@@ -394,7 +394,7 @@ void dCommandLinuxLike(char *input){
 void fCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
     //run bscript.sh script
-    char *command = "bash fscript.sh ";
+    char *command = "bash f.sh ";
     char *newString = malloc(strlen(command) + strlen(fileName) + 1);
     //add the command and the file name to the new string
     strcpy(newString, command);
@@ -406,7 +406,7 @@ void fCommandLinuxLike(char *input){
 void gCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
     //run bscript.sh script
-    char *command = "bash gscript.sh ";
+    char *command = "bash g.sh ";
     char *newString = malloc(strlen(command) + strlen(fileName) + 1);
     //add the command and the file name to the new string
     strcpy(newString, command);
@@ -570,6 +570,41 @@ int shellCore(){
            //create a process for running the command
             pid_t pid = fork();
             if(pid == 0){
+                int isPipe = 0;
+                //if the command is a pipe command
+                if(isPipeCommand(input) == 1){
+                    //divide the input it can be more than 2 commands
+                    char *commands[100];
+                    char *token = strtok(input, "|");
+                    int i = 0;
+                    while(token != NULL){
+                        commands[i] = token;
+                        token = strtok(NULL, "|");
+                        i++;
+                    }
+                    //run the commands
+                    char fullCommand[200] = "bash ";
+                    printf("i =>>>> %d \n", i);
+                    for(int j = 0; j < i; j++){
+                        if (j == 0){
+                            char command = commands[0][0];
+                            char commandWithSh[5] = {command, '.', 's', 'h'};
+                            strcat(fullCommand, commandWithSh);
+                            char *fileName = commands[0] + 2;
+                            strcat(fullCommand, " ");
+                            strcat(fullCommand, fileName);
+                        }else {
+                            char targetCommand[200] = "| bash ";
+                            char command = commands[j][1];
+                            char commandWithSh[5] = {command, '.', 's', 'h'};
+                            strcat(targetCommand, commandWithSh);
+                            strcat(fullCommand, targetCommand);
+                        }
+                    }
+                    system(fullCommand);
+                    exit(0);
+                    return;
+                }
                 // runCommand(input);
                 runCommandWithLinuxHelp(input);
                 writeHistory(input);
