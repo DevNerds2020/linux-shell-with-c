@@ -521,7 +521,7 @@ int shellCore(){
     signal(SIGINT, ctrlCHandler);
     int historyLine = 0;
     //load history from history.txt file for readline library
-    system("bash deleteEmptyLines.sh history.txt")
+    system("bash deleteEmptyLines.sh history.txt");
     using_history();
     read_history("history.txt");
 
