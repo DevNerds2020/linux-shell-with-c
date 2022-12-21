@@ -472,6 +472,39 @@ void runCommandWithLinuxHelp(char *input){
     return;
 }
 
+void runPipeCommand(char *input){
+//divide the input it can be more than 2 commands
+    char *commands[100];
+    char *token = strtok(input, "|");
+    int i = 0;
+    while(token != NULL){
+        commands[i] = token;
+        token = strtok(NULL, "|");
+        i++;
+    }
+    //run the commands
+    char fullCommand[200] = "bash ";
+    for(int j = 0; j < i; j++){
+        if (j == 0){
+            char command = commands[0][0];
+            char commandWithSh[5] = {command, '.', 's', 'h'};
+            strcat(fullCommand, commandWithSh);
+            char *fileName = commands[0] + 2;
+            strcat(fullCommand, " ");
+            strcat(fullCommand, fileName);
+        }else {
+            char targetCommand[200] = "| bash ";
+            char command = commands[j][1];
+            char commandWithSh[5] = {command, '.', 's', 'h'};
+            strcat(targetCommand, commandWithSh);
+            strcat(fullCommand, targetCommand);
+        }
+    }
+    system(fullCommand);
+    exit(0);
+    return;
+}
+
 int shellCore(){
     signalFlag = 0;
     //list of custom commands including =>  a,b,c,d,f,g in array
@@ -570,40 +603,9 @@ int shellCore(){
            //create a process for running the command
             pid_t pid = fork();
             if(pid == 0){
-                int isPipe = 0;
                 //if the command is a pipe command
                 if(isPipeCommand(input) == 1){
-                    //divide the input it can be more than 2 commands
-                    char *commands[100];
-                    char *token = strtok(input, "|");
-                    int i = 0;
-                    while(token != NULL){
-                        commands[i] = token;
-                        token = strtok(NULL, "|");
-                        i++;
-                    }
-                    //run the commands
-                    char fullCommand[200] = "bash ";
-                    printf("i =>>>> %d \n", i);
-                    for(int j = 0; j < i; j++){
-                        if (j == 0){
-                            char command = commands[0][0];
-                            char commandWithSh[5] = {command, '.', 's', 'h'};
-                            strcat(fullCommand, commandWithSh);
-                            char *fileName = commands[0] + 2;
-                            strcat(fullCommand, " ");
-                            strcat(fullCommand, fileName);
-                        }else {
-                            char targetCommand[200] = "| bash ";
-                            char command = commands[j][1];
-                            char commandWithSh[5] = {command, '.', 's', 'h'};
-                            strcat(targetCommand, commandWithSh);
-                            strcat(fullCommand, targetCommand);
-                        }
-                    }
-                    system(fullCommand);
-                    exit(0);
-                    return;
+                    runPipeCommand(input);
                 }
                 // runCommand(input);
                 runCommandWithLinuxHelp(input);
