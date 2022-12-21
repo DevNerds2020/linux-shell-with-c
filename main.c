@@ -265,7 +265,7 @@ void writeHistory(char *input){
         return;
     }
     //write the input to the file
-    fprintf(file, "%s", input);
+    fprintf(file, "%s\n", input);
     //close the file
     fclose(file);
 }
@@ -520,7 +520,10 @@ int shellCore(){
     //listen to ctrl + c signal if it is pressed then run loop again
     signal(SIGINT, ctrlCHandler);
     int historyLine = 0;
-    
+    //load history from history.txt file for readline library
+    system("bash deleteEmptyLines.sh history.txt")
+    using_history();
+    read_history("history.txt");
 
     while(status){
         //get current directory
@@ -531,10 +534,12 @@ int shellCore(){
         // getline(&input, &size, stdin);
         printf("myshell> %s: ", cwd);
         input = readline("\n");
+
         if(strlen(input) == 0 || signalFlag == 1){
             signalFlag = 0;
             continue;
         }
+
         add_history(input);
         //if input is e then end the program
         if(strcmp(input, "e") == 0){
