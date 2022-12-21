@@ -6,6 +6,8 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 /*
     creating a linux shell
@@ -40,8 +42,8 @@ char *getFileName(char *input){
     while(strchr(input, ' ') != NULL){
         input = strchr(input, ' ') + 1;
     }
-    //delete space from the end of the string
-    input[strlen(input) - 1] = '\0';
+    // //delete space from the end of the string
+    // input[strlen(input) - 1] = '\0';
     //get the file name
     char *fileName = input;
     return fileName;
@@ -520,54 +522,27 @@ int shellCore(){
     int historyLine = 0;
     
 
-    while(!signalFlag){
+    while(status){
         //get current directory
         char cwd[1024];
         getcwd(cwd, sizeof(cwd));
-        printf("myshell> %s: ", cwd);
         
         //get the input if it is not null then it is from the history and it has a default value else it is from the user
-        getline(&input, &size, stdin);
-      
-        //get arrow up and down inputs for changing the history
-        if(strcmp(input, "\033[A\n") == 0){
-            //arrow up
-            //get the line count
-            int lineCount = getLineCount();
-            //get the target line
-            char *targetLine = getTargetLine(lineCount - historyLine);
-            if(targetLine != NULL){
-                //print the target line
-                // printf("%s", targetLine);
-                //copy the target line to input
-                strcpy(input, targetLine);
-                //increase the history line
-                historyLine++;
-            }
-            continue;
-        }else if(strcmp(input, "\033[B\n") == 0){
-            //arrow down
-            //get the line count
-            int lineCount = getLineCount();
-            //get the target line
-            char *targetLine = getTargetLine(lineCount - historyLine);
-            if(targetLine != NULL){
-                //print the target line
-                // printf("%s", targetLine);
-                //copy the target line to input
-                strcpy(input, targetLine);
-                //decrease the history line
-                historyLine--;
-            }
+        // getline(&input, &size, stdin);
+        printf("myshell> %s: ", cwd);
+        input = readline("\n");
+        if(strlen(input) == 0 || signalFlag == 1){
+            signalFlag = 0;
             continue;
         }
+        add_history(input);
         //if input is e then end the program
-        if(strcmp(input, "e\n") == 0){
+        if(strcmp(input, "e") == 0){
             eCommand();
             break;
         }
         //if input is h then print the history of commands
-        if(strcmp(input, "h\n") == 0){
+        if(strcmp(input, "h") == 0){
             printHistory();
             continue;
         }
@@ -623,8 +598,6 @@ int shellCore(){
 }
 
 int main(int argc, char **argv){
-    while(status){
-        status = shellCore();
-    }
+    status = shellCore();
 }
 
