@@ -30,7 +30,6 @@ int checkIsCustomInput(char *input){
 //    printf("%s ", firstWord);
     //check if the first string is a custom command
     if(strcmp(firstWord, "a") == 0 || strcmp(firstWord, "b") == 0 || strcmp(firstWord, "c") == 0 || strcmp(firstWord, "d") == 0 || strcmp(firstWord, "f") == 0 || strcmp(firstWord, "g") == 0){
-        //TODO check if we have | in the input for piping and dividing the input for example a file.txt | b | c
         return 1;
     }
     return 0;
@@ -253,6 +252,13 @@ void eCommand(){
 
 //ctrl + c handler
 void ctrlCHandler(int signum){
+    fflush(stdout);
+    char cwd[1024];
+    printf("^C\n");
+    getcwd(cwd, sizeof(cwd));
+    printf("myshell> %s: ", cwd);
+    printf("\n");
+    //start the program again
     signalFlag = 1;
 }
 
@@ -369,6 +375,22 @@ void bCommandLinuxLike(char *input){
     return;
 }
 
+// we can use a general function too
+// void generalFunction (char *input, char *command){
+//     char *fileName = getFileName(input);
+//     //run bscript.sh script
+//     char *newString = malloc(strlen(command) + strlen(fileName) + 1);
+//     //add the command and the file name to the new string
+//     char *commandFile = malloc(strlen("bash ")+strlen(command) + strlen(".sh ") + 1);
+//     strcpy(commandFile, "bash ");
+//     strcat(commandFile, command);
+//     strcat(commandFile, ".sh ");
+//     strcpy(newString, commandFile);
+//     strcat(newString, fileName);
+//     system(newString);
+//     return;
+// }
+
 void cCommandLinuxLike(char *input){
     char *fileName = getFileName(input);
     //run bscript.sh script
@@ -416,7 +438,6 @@ void gCommandLinuxLike(char *input){
     system(newString);
     return;
 }
-
 
 void runCommand(char *input){
     char inputCopy[100];
@@ -549,6 +570,11 @@ int shellCore(){
         //if input is h then print the history of commands
         if(strcmp(input, "h") == 0){
             printHistory();
+            continue;
+        }
+        //if the command is cd then change the directory
+        if(strncmp(input, "cd", 2) == 0){
+            chdir(input + 3);
             continue;
         }
         char inputCopy[100];
